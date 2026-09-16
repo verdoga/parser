@@ -7,6 +7,7 @@ import (
 	"testing"
 )
 
+// TestDiscoverDirectoryDepthAndOrder проверяет глубину и детерминированный порядок поиска.
 func TestDiscoverDirectoryDepthAndOrder(t *testing.T) {
 	root := t.TempDir()
 	writeFile(t, filepath.Join(root, "z.TXT"))
@@ -38,6 +39,7 @@ func TestDiscoverDirectoryDepthAndOrder(t *testing.T) {
 	}
 }
 
+// TestDiscoverExplicitFile проверяет обработку явно указанного TXT-файла.
 func TestDiscoverExplicitFile(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "LESSON.TxT")
 	writeFile(t, path)
@@ -52,6 +54,7 @@ func TestDiscoverExplicitFile(t *testing.T) {
 	}
 }
 
+// TestDiscoverRejectsExplicitNonTXT проверяет отказ для явно указанного файла другого типа.
 func TestDiscoverRejectsExplicitNonTXT(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "lesson.md")
 	writeFile(t, path)
@@ -65,6 +68,7 @@ func TestDiscoverRejectsExplicitNonTXT(t *testing.T) {
 	}
 }
 
+// TestDiscoverIgnoresSymbolicLinks проверяет, что символические ссылки не входят в результат.
 func TestDiscoverIgnoresSymbolicLinks(t *testing.T) {
 	root := t.TempDir()
 	target := filepath.Join(root, "target.txt")
@@ -83,6 +87,7 @@ func TestDiscoverIgnoresSymbolicLinks(t *testing.T) {
 	}
 }
 
+// writeFile создаёт пустой файл вместе с отсутствующими родительскими каталогами.
 func writeFile(t *testing.T, path string) {
 	t.Helper()
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
@@ -93,6 +98,7 @@ func writeFile(t *testing.T, path string) {
 	}
 }
 
+// absolutePaths строит ожидаемые абсолютные пути относительно корневого каталога.
 func absolutePaths(root string, paths ...string) []string {
 	result := make([]string, len(paths))
 	for index, path := range paths {
@@ -101,4 +107,5 @@ func absolutePaths(root string, paths ...string) []string {
 	return result
 }
 
+// intPointer возвращает указатель на отдельную копию целого числа.
 func intPointer(value int) *int { return &value }

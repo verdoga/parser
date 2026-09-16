@@ -11,6 +11,7 @@ import (
 	"testing"
 )
 
+// TestCLIArgumentErrors проверяет внешний контракт ошибок аргументов командной строки.
 func TestCLIArgumentErrors(t *testing.T) {
 	binary := buildBinary(t)
 	tests := []struct {
@@ -56,6 +57,7 @@ func TestCLIArgumentErrors(t *testing.T) {
 	}
 }
 
+// buildBinary собирает отдельный исполняемый файл для интеграционной проверки.
 func buildBinary(t *testing.T) string {
 	t.Helper()
 	name := "dslparser"

@@ -7,6 +7,7 @@ import (
 	"testing"
 )
 
+// TestParseArguments проверяет допустимые параметры и сообщения об ошибках командной строки.
 func TestParseArguments(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -49,6 +50,7 @@ func TestParseArguments(t *testing.T) {
 	}
 }
 
+// TestRunRejectsArgumentsBeforeAccessingPath проверяет приоритет валидации аргументов.
 func TestRunRejectsArgumentsBeforeAccessingPath(t *testing.T) {
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
@@ -66,6 +68,7 @@ func TestRunRejectsArgumentsBeforeAccessingPath(t *testing.T) {
 	}
 }
 
+// TestRunEmptyDirectory проверяет успешное завершение для каталога без входных файлов.
 func TestRunEmptyDirectory(t *testing.T) {
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
@@ -83,8 +86,10 @@ func TestRunEmptyDirectory(t *testing.T) {
 	}
 }
 
+// intPointer возвращает указатель на отдельную копию целого числа.
 func intPointer(value int) *int { return &value }
 
+// assertDepth сравнивает необязательные значения глубины.
 func assertDepth(t *testing.T, got, want *int) {
 	t.Helper()
 	if got == nil || want == nil {
