@@ -11,9 +11,13 @@ import (
 
 // Options содержит параметры, полученные из командной строки.
 type Options struct {
-	Path        string
-	Replace     bool
-	Depth       *int
+	// Path задаёт исходный файл или каталог.
+	Path string
+	// Replace разрешает замену целевого результата.
+	Replace bool
+	// Depth ограничивает глубину поиска; nil снимает ограничение.
+	Depth *int
+	// ToolVersion задаёт версию исполняемого файла для результата обработки.
 	ToolVersion string
 }
 

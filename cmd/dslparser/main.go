@@ -1,3 +1,4 @@
+// Package main предоставляет интерфейс командной строки dslparser.
 package main
 
 import (
@@ -13,10 +14,12 @@ import (
 // version задаётся при сборке через -ldflags "-X main.version=<version>".
 var version = "dev"
 
+// main запускает интерфейс командной строки и завершает процесс с полученным кодом.
 func main() {
 	os.Exit(run(os.Args[1:], os.Stdout, os.Stderr))
 }
 
+// run проверяет аргументы и передаёт управление пакетному обработчику.
 func run(arguments []string, stdout, stderr io.Writer) int {
 	options, err := parseArguments(arguments)
 	if err != nil {
@@ -27,6 +30,7 @@ func run(arguments []string, stdout, stderr io.Writer) int {
 	return app.Run(options, stdout, stderr)
 }
 
+// parseArguments преобразует аргументы командной строки в параметры приложения.
 func parseArguments(arguments []string) (app.Options, error) {
 	flags := flag.NewFlagSet("dslparser", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
@@ -52,11 +56,15 @@ func parseArguments(arguments []string) (app.Options, error) {
 	}, nil
 }
 
+// optionalDepth хранит необязательное ограничение глубины обхода.
 type optionalDepth struct {
+	// value содержит заданную пользователем неотрицательную глубину.
 	value int
-	set   bool
+	// set равен true, если параметр был задан, и false в противном случае.
+	set bool
 }
 
+// Set разбирает и сохраняет неотрицательную глубину.
 func (depth *optionalDepth) Set(raw string) error {
 	value, err := strconv.Atoi(raw)
 	if err != nil {
@@ -70,6 +78,7 @@ func (depth *optionalDepth) Set(raw string) error {
 	return nil
 }
 
+// String возвращает заданную глубину или пустую строку, если значения нет.
 func (depth *optionalDepth) String() string {
 	if depth == nil || !depth.set {
 		return ""
@@ -77,6 +86,7 @@ func (depth *optionalDepth) String() string {
 	return strconv.Itoa(depth.value)
 }
 
+// pointer возвращает указатель на копию глубины или nil, если значения нет.
 func (depth *optionalDepth) pointer() *int {
 	if !depth.set {
 		return nil
