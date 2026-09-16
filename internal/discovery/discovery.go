@@ -26,6 +26,8 @@ type Result struct {
 	IsFile bool
 	// Files содержит абсолютные очищенные пути в лексикографическом порядке.
 	Files []string
+	// JSONFiles содержит абсолютные очищенные пути обычных JSON-файлов из каталогов с найденными TXT.
+	JSONFiles []string
 	// ScanErrors содержит ошибки отдельных участков обхода в порядке обнаружения.
 	ScanErrors []error
 }
