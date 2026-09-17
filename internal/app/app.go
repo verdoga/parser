@@ -4,7 +4,6 @@ package app
 import (
 	"errors"
 	"fmt"
-	"io"
 
 	"dslparser/internal/discovery"
 )
@@ -21,41 +20,43 @@ type Options struct {
 	ToolVersion string
 }
 
-// Validate проверяет параметры внутренней точки входа до обращения к файловой системе.
-func (o Options) Validate() error { panic("TODO") }
+// validate проверяет параметры внутренней точки входа до обращения к файловой системе.
+func (o Options) validate() error { panic("TODO") }
 
-// Run проверяет исходный путь и запускает доступные этапы обработки.
+// Run проверяет исходный путь и возвращает решения пакетного обработчика без консольного вывода.
 //
 // Структурный парсер будет подключён следующим вертикальным срезом. До этого
 // момента найденный TXT нельзя ошибочно объявлять успешно обработанным.
-func Run(options Options, stdout, stderr io.Writer) int {
+func Run(options Options) (RunResult, error) {
 	result, err := discovery.Discover(discovery.Request{Path: options.Path, Depth: options.Depth})
 	if err != nil {
+		exitCode := 1
 		var inputErr *discovery.InputError
 		if errors.As(err, &inputErr) {
-			fmt.Fprintf(stderr, "ОШИБКА: %v\n", err)
-			return 2
+			exitCode = 2
 		}
-		fmt.Fprintf(stderr, "ОШИБКА: %v\n", err)
-		return 1
+		return RunResult{ExitCode: exitCode}, fmt.Errorf("запуск discovery: %w", err)
 	}
 
-	for _, scanErr := range result.ScanErrors {
-		fmt.Fprintf(stderr, "ОШИБКА обхода: %v\n", scanErr)
+	runResult := RunResult{
+		Files:      make([]FileResult, 0, len(result.Files)),
+		ScanErrors: append([]error(nil), result.ScanErrors...),
+		Summary: Summary{
+			Found:      len(result.Files),
+			ScanErrors: len(result.ScanErrors),
+		},
 	}
-
-	// Нулевой набор входов уже является законченным успешным пакетным запуском.
-	if len(result.Files) == 0 {
-		fmt.Fprintf(stdout, "ИТОГ found=0 parsed=0 created=0 replaced=0 skipped=0 success=0 failed=0 diagnostics=0 scanErrors=%d\n", len(result.ScanErrors))
-		if len(result.ScanErrors) > 0 {
-			return 1
-		}
-		return 0
-	}
-
 	for _, path := range result.Files {
-		fmt.Fprintf(stderr, "ОШИБКА action=failed errors=0 path=%q message=%q\n", path, "обработка DSL ещё не реализована")
+		runResult.Files = append(runResult.Files, FileResult{
+			Path:    path,
+			Status:  FileFailed,
+			Action:  ActionFailed,
+			Message: "обработка DSL ещё не реализована",
+		})
 	}
-	fmt.Fprintf(stdout, "ИТОГ found=%d parsed=0 created=0 replaced=0 skipped=0 success=0 failed=%d diagnostics=0 scanErrors=%d\n", len(result.Files), len(result.Files), len(result.ScanErrors))
-	return 1
+	runResult.Summary.Failed = len(result.Files)
+	if runResult.Summary.Failed > 0 || runResult.Summary.ScanErrors > 0 {
+		runResult.ExitCode = 1
+	}
+	return runResult, nil
 }

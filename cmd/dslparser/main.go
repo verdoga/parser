@@ -27,7 +27,42 @@ func run(arguments []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	options.ToolVersion = version
-	return app.Run(options, stdout, stderr)
+	result, err := app.Run(options)
+	if err != nil {
+		fmt.Fprintf(stderr, "ОШИБКА: %v\n", err)
+		return result.ExitCode
+	}
+	for _, scanErr := range result.ScanErrors {
+		fmt.Fprintf(stderr, "ОШИБКА обхода: %v\n", scanErr)
+	}
+	for _, file := range result.Files {
+		if file.Status == app.FileSuccess {
+			fmt.Fprintf(stdout, "УСПЕХ action=%s errors=%d path=%q\n", actionName(file.Action), file.ErrorCount, file.Path)
+			continue
+		}
+		fmt.Fprintf(stderr, "ОШИБКА action=%s errors=%d path=%q message=%q\n", actionName(file.Action), file.ErrorCount, file.Path, file.Message)
+	}
+	summary := result.Summary
+	fmt.Fprintf(stdout, "ИТОГ found=%d parsed=%d created=%d replaced=%d skipped=%d success=%d failed=%d diagnostics=%d scanErrors=%d\n",
+		summary.Found, summary.Parsed, summary.Created, summary.Replaced, summary.Skipped,
+		summary.Success, summary.Failed, summary.Diagnostics, summary.ScanErrors)
+	return result.ExitCode
+}
+
+// actionName возвращает консольное имя уже вычисленного приложением действия.
+func actionName(action app.FileAction) string {
+	switch action {
+	case app.ActionCreated:
+		return "created"
+	case app.ActionReplaced:
+		return "replaced"
+	case app.ActionSkipped:
+		return "skipped"
+	case app.ActionFailed:
+		return "failed"
+	default:
+		return "unknown"
+	}
 }
 
 // parseArguments преобразует аргументы командной строки в параметры приложения.

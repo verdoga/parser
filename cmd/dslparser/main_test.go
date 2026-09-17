@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -83,6 +84,29 @@ func TestRunEmptyDirectory(t *testing.T) {
 	}
 	if stderr.Len() != 0 {
 		t.Fatalf("run() stderr = %q, want empty", stderr.String())
+	}
+}
+
+// TestRunReportsUnavailableParser проверяет адаптацию файлового решения приложения без вызова незавершённых тел.
+func TestRunReportsUnavailableParser(t *testing.T) {
+	directory := t.TempDir()
+	path := filepath.Join(directory, "lesson.txt")
+	if err := os.WriteFile(path, []byte("@dsl-version 1.2\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+
+	exitCode := run([]string{path}, &stdout, &stderr)
+
+	if exitCode != 1 {
+		t.Fatalf("run() exit code = %d, want 1", exitCode)
+	}
+	if !strings.Contains(stderr.String(), `ОШИБКА action=failed errors=0 path=`) {
+		t.Fatalf("run() stderr = %q", stderr.String())
+	}
+	if !strings.Contains(stdout.String(), "ИТОГ found=1") {
+		t.Fatalf("run() stdout = %q", stdout.String())
 	}
 }
 

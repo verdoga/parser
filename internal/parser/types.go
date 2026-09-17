@@ -42,10 +42,13 @@ type Result struct {
 // ProbeSource выполняет лёгкое извлечение версии и document-id без полного разбора.
 // Синтаксическая проблема даёт отсутствующее поле Probe, но не ошибку: диагностики
 // создаются только последующим полным Parse после решения не пропускать источник.
+// ProbeSource не изменяет data и не сохраняет ссылку на переданный срез.
 func ProbeSource(data []byte, registry grammar.Registry) (Probe, error) { panic("TODO") }
 
 // Parse выполняет декодирование, выбор грамматики и полный построчный структурный разбор.
-// Parse создаёт единственный diagnostics.Builder с Input.ProcessingID.
+// Parse создаёт единственный diagnostics.Builder с Input.ProcessingID, не изменяет
+// Input.Bytes и не сохраняет ссылку на переданный срез. Input.SHA256 должен описывать
+// точные Input.Bytes; несоответствие является ошибкой контракта вызова.
 func Parse(input Input, registry grammar.Registry) (Result, error) {
 	panic("TODO")
 }

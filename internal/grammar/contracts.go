@@ -38,20 +38,6 @@ const (
 	ContentEditor
 )
 
-// EscapeMode задаёт контекстное снятие экранирования.
-type EscapeMode int
-
-const (
-	// EscapeText обрабатывает синтаксически значимое экранирование обычного текста.
-	EscapeText EscapeMode = iota
-	// EscapeMedia обрабатывает кавычки и обратную косую черту источника media.
-	EscapeMedia
-	// EscapeResourcePath сохраняет буквальную обратную косую черту пути ресурса.
-	EscapeResourcePath
-	// EscapeNone не снимает экранирование.
-	EscapeNone
-)
-
 // Context содержит устойчивое имя грамматического контекста версии.
 type Context string
 
@@ -101,7 +87,9 @@ type ElementDecision struct {
 	ByteEnd int
 }
 
-// Transition задаёт завершение и открытие неблочных областей после выбора родителя строки.
+// Transition задаёт завершение и открытие стабильных неблочных областей DSL после выбора
+// родителя строки. Эти области являются общим контрактом поддерживаемых версий, а не
+// внутренним состоянием реализации DSL v1.2.
 type Transition struct {
 	// CloseTask завершает активное задание, если оно существует.
 	CloseTask bool
@@ -182,8 +170,8 @@ type RecoveryDecision struct {
 
 // Problem описывает обнаруженную grammar проблему до назначения диагностического ID.
 type Problem struct {
-	// Code содержит один из кодов P003–P012.
-	Code string
+	// Kind содержит одну из построчных грамматических причин P003–P010 и P012.
+	Kind ProblemKind
 	// Scope содержит область будущей диагностики.
 	Scope model.DiagnosticScope
 	// Fatal равен true при неоднозначном продолжении и false при восстановлении.
@@ -201,3 +189,27 @@ type Problem struct {
 	// Required содержит имя обязательного параметра, формы или разделителя либо пустую строку.
 	Required string
 }
+
+// ProblemKind задаёт закрытый набор построчных грамматических причин P003–P010 и P012.
+type ProblemKind string
+
+const (
+	// ProblemUnknownTag соответствует P003: неизвестная DSL-конструкция.
+	ProblemUnknownTag ProblemKind = "P003"
+	// ProblemMissingSeparator соответствует P004: нарушен обязательный разделитель.
+	ProblemMissingSeparator ProblemKind = "P004"
+	// ProblemUnsupportedForm соответствует P005: форма известного тега не поддерживается.
+	ProblemUnsupportedForm ProblemKind = "P005"
+	// ProblemMissingArgument соответствует P006: отсутствует обязательный параметр.
+	ProblemMissingArgument ProblemKind = "P006"
+	// ProblemExtraContent соответствует P007: присутствует лишний фрагмент объявления.
+	ProblemExtraContent ProblemKind = "P007"
+	// ProblemMalformedBlockOpen соответствует P008: строка открытия блока неоднозначна.
+	ProblemMalformedBlockOpen ProblemKind = "P008"
+	// ProblemUnexpectedBlockClose соответствует P009: закрывается несуществующий блок.
+	ProblemUnexpectedBlockClose ProblemKind = "P009"
+	// ProblemMalformedBlockClose соответствует P010: закрывающая скобка совмещена с содержимым.
+	ProblemMalformedBlockClose ProblemKind = "P010"
+	// ProblemUnescapedBrace соответствует P012: фигурная скобка в тексте не экранирована.
+	ProblemUnescapedBrace ProblemKind = "P012"
+)

@@ -7,21 +7,21 @@ import (
 	"dslparser/internal/discovery"
 )
 
-// DiscoverFunc находит входные TXT и область существующих JSON.
-type DiscoverFunc func(request discovery.Request) (discovery.Result, error)
+// discoverFunc находит входные TXT и область существующих JSON.
+type discoverFunc func(request discovery.Request) (discovery.Result, error)
 
-// BuildCacheFunc строит неизменяемый индекс минимальных заголовков JSON.
-type BuildCacheFunc func(paths []string, reader cache.HeaderReader) (cache.Index, error)
+// buildCacheFunc строит неизменяемый индекс минимальных заголовков JSON.
+type buildCacheFunc func(paths []string, reader cache.HeaderReader) (cache.Index, error)
 
-// ClockFunc возвращает текущее время для одной точки измерения.
+// clockFunc возвращает текущее время для одной точки измерения.
 // Возвращённое значение приложение приводит к UTC.
-type ClockFunc func() time.Time
+type clockFunc func() time.Time
 
-// ProcessingIDFunc создаёт непустой идентификатор, уникальный внутри результата.
-type ProcessingIDFunc func() string
+// processingIDFunc создаёт непустой идентификатор, уникальный внутри результата.
+type processingIDFunc func() string
 
-// ProcessRequest задаёт параметры обработки одного файла.
-type ProcessRequest struct {
+// processRequest задаёт параметры обработки одного файла.
+type processRequest struct {
 	// Path содержит абсолютный очищенный путь TXT-файла.
 	Path string
 	// Replace разрешает замену только вычисленного целевого JSON.
@@ -34,30 +34,30 @@ type ProcessRequest struct {
 	Cache cache.Index
 }
 
-// ProcessFileFunc выполняет последовательный конвейер одного источника без форматирования консоли.
-type ProcessFileFunc func(request ProcessRequest) FileResult
+// processFileFunc выполняет последовательный конвейер одного источника без форматирования консоли.
+type processFileFunc func(request processRequest) FileResult
 
-// Dependencies содержит явные подменяемые границы пакетного оркестратора.
-type Dependencies struct {
+// dependencies содержит явные подменяемые границы пакетного оркестратора.
+type dependencies struct {
 	// Discover выполняет нормализацию пути и поиск файлов.
-	Discover DiscoverFunc
+	Discover discoverFunc
 	// BuildCache строит индекс до последовательной обработки TXT.
-	BuildCache BuildCacheFunc
+	BuildCache buildCacheFunc
 	// HeaderReader читает минимальные заголовки найденных JSON.
 	HeaderReader cache.HeaderReader
 	// Clock предоставляет время для новых попыток обработки.
-	Clock ClockFunc
-	// Processor выполняет конвейер одного файла.
-	Processor ProcessFileFunc
+	Clock clockFunc
+	// processor выполняет конвейер одного файла.
+	processor processFileFunc
 }
 
-// DefaultDependencies создаёт production-композицию стандартной файловой системы,
+// defaultDependencies создаёт production-композицию стандартной файловой системы,
 // grammar v1.2, кэша, parser, report и безопасной записи.
-func DefaultDependencies() (Dependencies, error) { panic("TODO") }
+func defaultDependencies() (dependencies, error) { panic("TODO") }
 
-// RunWithDependencies выполняет пакетный запуск с явно переданными зависимостями.
+// runWithDependencies выполняет пакетный запуск с явно переданными зависимостями.
 // Ошибка означает, что обработка не начиналась; завершённые файловые и обходные
 // ошибки представлены в RunResult и его ExitCode.
-func RunWithDependencies(options Options, dependencies Dependencies) (RunResult, error) {
+func runWithDependencies(options Options, dependencies dependencies) (RunResult, error) {
 	panic("TODO")
 }
