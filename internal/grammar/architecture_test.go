@@ -7,6 +7,7 @@ var (
 	_ func(Registry, string) (Grammar, bool)           = Registry.Lookup
 	_ func(Registry) []string                          = Registry.Versions
 	_ func(TagForm, TagForm) bool                      = TagForm.Allows
+	_ func(ParentKind, ...ParentKind) ParentDecision   = Parents
 	_ error                                            = (*RegistrationError)(nil)
 	_ func(*RegistrationError) string                  = (*RegistrationError).Version
 	_ func(*RegistrationError) RegistrationErrorReason = (*RegistrationError).Reason
