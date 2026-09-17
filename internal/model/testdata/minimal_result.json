@@ -1,0 +1,25 @@
+{
+  "formatVersion": "1.0",
+  "document": {
+    "dslVersion": null,
+    "fileName": null,
+    "filePath": null,
+    "encoding": null,
+    "hasBom": null,
+    "lineCount": null,
+    "byteLength": null,
+    "sha256": null,
+    "metadata": {
+      "documentId": null,
+      "title": null,
+      "subtitle": null,
+      "section": null,
+      "order": null,
+      "resourceDirs": []
+    },
+    "hasErrors": false
+  },
+  "processing": [],
+  "lines": [],
+  "diagnostics": []
+}
