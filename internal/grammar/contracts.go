@@ -70,6 +70,8 @@ type GrammarRequest struct {
 }
 
 // GrammarDecision содержит полное декларативное решение grammar для одной строки.
+// Parser выбирает Parent по состоянию перед строкой, затем применяет Transition и после него Block.
+// Для BlockClose родителем остаётся закрываемая вершина стека, а само удаление выполняется последним.
 type GrammarDecision struct {
 	// LineType содержит классификацию строки.
 	LineType model.LineType
@@ -99,7 +101,7 @@ type ElementDecision struct {
 	ByteEnd int
 }
 
-// Transition задаёт завершение и открытие неблочных областей.
+// Transition задаёт завершение и открытие неблочных областей после выбора родителя строки.
 type Transition struct {
 	// CloseTask завершает активное задание, если оно существует.
 	CloseTask bool
@@ -137,11 +139,16 @@ const (
 	ParentVariant
 )
 
-// ParentDecision задаёт правило определения логического родителя.
+// ParentDecision задаёт правило определения логического родителя до перехода состояния строки.
 type ParentDecision struct {
-	// Kind содержит источник родителя.
-	Kind ParentKind
+	// Kinds содержит источники родителя в порядке приоритета.
+	// Parser выбирает первую существующую область; пустой срез задаёт корневую строку.
+	Kinds []ParentKind
 }
+
+// Parents создаёт правило выбора первого существующего логического родителя.
+// Возвращаемое значение владеет отдельной копией переданного порядка.
+func Parents(primary ParentKind, fallback ...ParentKind) ParentDecision { panic("TODO") }
 
 // BlockAction задаёт изменение стека фигурных блоков.
 type BlockAction int

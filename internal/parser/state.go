@@ -52,5 +52,5 @@ func (s parseState) topBlock() (blockFrame, bool) { panic("TODO") }
 // applyTransition применяет однозначный переход неблочных областей к текущей строке.
 func (s *parseState) applyTransition(transition grammar.Transition, line int) { panic("TODO") }
 
-// parentFor возвращает номер логического родителя либо ноль для корневой строки.
+// parentFor возвращает номер первого существующего логического родителя либо ноль для корневой строки.
 func (s parseState) parentFor(decision grammar.ParentDecision) int { panic("TODO") }
