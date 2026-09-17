@@ -4,13 +4,14 @@ import "time"
 
 // Компиляционные проверки фиксируют подменяемые границы оркестратора.
 var (
-	_ ClockFunc                                      = architectureNow
-	_ ProcessingIDFunc                               = architectureID
-	_ ProcessFileFunc                                = architectureProcess
-	_                                                = ProcessorDependencies{}
-	_ ProcessFileFunc                                = Processor{}.Process
-	_ func() (Dependencies, error)                   = DefaultDependencies
-	_ func(Options, Dependencies) (RunResult, error) = RunWithDependencies
+	_ clockFunc                                      = architectureNow
+	_ processingIDFunc                               = architectureID
+	_ processFileFunc                                = architectureProcess
+	_                                                = processorDependencies{}
+	_ processFileFunc                                = processor{}.process
+	_ func(Options) (RunResult, error)               = Run
+	_ func() (dependencies, error)                   = defaultDependencies
+	_ func(Options, dependencies) (RunResult, error) = runWithDependencies
 )
 
 // architectureNow представляет тестовую границу времени для будущих поведенческих тестов.
@@ -20,4 +21,4 @@ func architectureNow() time.Time { panic("TODO") }
 func architectureID() string { panic("TODO") }
 
 // architectureProcess представляет тестовую границу обработки файла.
-func architectureProcess(request ProcessRequest) FileResult { panic("TODO") }
+func architectureProcess(request processRequest) FileResult { panic("TODO") }

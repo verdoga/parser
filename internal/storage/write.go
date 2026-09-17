@@ -46,6 +46,8 @@ type Writer interface {
 }
 
 // WriteJSON полностью записывает, синхронизирует и закрывает временный файл до установки.
+// WriteJSON не изменяет data. Неизвестный WriteMode и любой незавершённый этап возвращают
+// WriteError; существующий target при ошибке должен сохранить прежнее содержимое.
 func (FileSystem) WriteJSON(target string, data []byte, mode WriteMode) error { panic("TODO") }
 
 // WriteError описывает этап неудачной безопасной записи.

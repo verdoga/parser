@@ -66,14 +66,14 @@ type Summary struct {
 	ScanErrors int
 }
 
-// AddFile учитывает завершённый результат файла в статистике.
-func (s *Summary) AddFile(result FileResult) { panic("TODO") }
+// addFile учитывает завершённый результат файла в статистике.
+func (s *Summary) addFile(result FileResult) { panic("TODO") }
 
-// AddScanErrors учитывает ошибки обхода каталогов.
-func (s *Summary) AddScanErrors(count int) { panic("TODO") }
+// addScanErrors учитывает ошибки обхода каталогов.
+func (s *Summary) addScanErrors(count int) { panic("TODO") }
 
-// Code возвращает 0 при полном успехе и 1 при наличии файловых или обходных ошибок.
-func (s Summary) Code() int { panic("TODO") }
+// code возвращает 0 при полном успехе и 1 при наличии файловых или обходных ошибок.
+func (s Summary) code() int { panic("TODO") }
 
 // RunResult содержит упорядоченные результаты и итог пакетного запуска.
 type RunResult struct {
