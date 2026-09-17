@@ -1,5 +1,7 @@
 package parser
 
+import "dslparser/internal/grammar"
+
 // tokenKind задаёт внутренний вид лексического фрагмента.
 type tokenKind int
 
@@ -37,13 +39,13 @@ type lexicalLine struct {
 }
 
 // lexLine выбирает допустимый лексический режим для текущего контекста.
-func lexLine(line physicalLine, mode ContentMode) lexicalLine { panic("TODO") }
+func lexLine(line physicalLine, mode grammar.ContentMode) lexicalLine { panic("TODO") }
 
 // lexDeclaration выделяет токены потенциального объявления DSL.
 func lexDeclaration(line physicalLine) lexicalLine { panic("TODO") }
 
 // lexOpaqueContent сохраняет содержимое и распознаёт только разрешённые границы режима.
-func lexOpaqueContent(line physicalLine, mode ContentMode) lexicalLine { panic("TODO") }
+func lexOpaqueContent(line physicalLine, mode grammar.ContentMode) lexicalLine { panic("TODO") }
 
 // unescapeValue снимает только экранирование, значимое для заданного режима.
-func unescapeValue(raw string, mode EscapeMode) string { panic("TODO") }
+func unescapeValue(raw string, mode grammar.EscapeMode) string { panic("TODO") }

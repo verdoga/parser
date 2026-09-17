@@ -1,6 +1,9 @@
 package parser
 
-import "dslparser/internal/model"
+import (
+	"dslparser/internal/grammar"
+	"dslparser/internal/model"
+)
 
 // Input содержит точные байты и уже известные сведения одного источника.
 type Input struct {
@@ -37,7 +40,7 @@ type Result struct {
 }
 
 // ProbeSource выполняет лёгкое извлечение версии и document-id без полного разбора.
-func ProbeSource(input Input, registry Registry) (Probe, []model.Diagnostic) { panic("TODO") }
+func ProbeSource(input Input, registry grammar.Registry) (Probe, []model.Diagnostic) { panic("TODO") }
 
 // Parse выполняет декодирование, выбор грамматики и полный построчный структурный разбор.
-func Parse(input Input, registry Registry) Result { panic("TODO") }
+func Parse(input Input, registry grammar.Registry) Result { panic("TODO") }

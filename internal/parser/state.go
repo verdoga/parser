@@ -1,6 +1,9 @@
 package parser
 
-import "dslparser/internal/model"
+import (
+	"dslparser/internal/grammar"
+	"dslparser/internal/model"
+)
 
 // parseState содержит независимые состояния фигурных и неблочных областей.
 type parseState struct {
@@ -29,9 +32,9 @@ type blockFrame struct {
 	// opening содержит диапазон структурной открывающей скобки.
 	opening model.Range
 	// mode содержит режим распознавания содержимого.
-	mode ContentMode
+	mode grammar.ContentMode
 	// context содержит грамматический контекст содержимого.
-	context Context
+	context grammar.Context
 }
 
 // newParseState создаёт независимое пустое состояние одного разбора.
@@ -47,7 +50,7 @@ func (s *parseState) closeBlock() blockFrame { panic("TODO") }
 func (s parseState) topBlock() (blockFrame, bool) { panic("TODO") }
 
 // applyTransition применяет однозначный переход неблочных областей к текущей строке.
-func (s *parseState) applyTransition(transition Transition, line int) { panic("TODO") }
+func (s *parseState) applyTransition(transition grammar.Transition, line int) { panic("TODO") }
 
 // parentFor возвращает номер логического родителя либо ноль для корневой строки.
-func (s parseState) parentFor(decision ParentDecision) int { panic("TODO") }
+func (s parseState) parentFor(decision grammar.ParentDecision) int { panic("TODO") }

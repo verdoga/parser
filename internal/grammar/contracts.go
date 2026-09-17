@@ -1,14 +1,6 @@
-package parser
+package grammar
 
 import "dslparser/internal/model"
-
-// Registry предоставляет неизменяемый набор реализаций поддерживаемых версий DSL.
-type Registry interface {
-	// Lookup возвращает грамматику версии и true либо nil и false для неподдерживаемой версии.
-	Lookup(version string) (Grammar, bool)
-	// Versions возвращает отдельную копию поддерживаемых версий в детерминированном порядке.
-	Versions() []string
-}
 
 // Grammar задаёт реальную границу подмены правил одной версии DSL.
 type Grammar interface {
@@ -17,6 +9,20 @@ type Grammar interface {
 	// Classify классифицирует строку в заданном контексте без изменения состояния parser.
 	Classify(request GrammarRequest) GrammarDecision
 }
+
+// TagForm задаёт структурную форму объявления тега.
+type TagForm int
+
+const (
+	// TagFormLine обозначает однострочное объявление без открывающей границы блока.
+	TagFormLine TagForm = 1 << iota
+	// TagFormBlock обозначает объявление, открывающее фигурный блок.
+	TagFormBlock
+)
+
+// Allows сообщает, разрешена ли одиночная форма candidate набором форм f.
+// Результат true означает, что форма разрешена; false означает, что форма не входит в набор.
+func (f TagForm) Allows(candidate TagForm) bool { panic("TODO") }
 
 // ContentMode задаёт способ лексического восприятия содержимого текущего блока.
 type ContentMode int

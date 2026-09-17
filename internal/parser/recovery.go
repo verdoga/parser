@@ -1,9 +1,12 @@
 package parser
 
-import "dslparser/internal/model"
+import (
+	"dslparser/internal/grammar"
+	"dslparser/internal/model"
+)
 
 // canRecover сообщает true при однозначном продолжении и false при необходимости остановки.
-func canRecover(decision RecoveryDecision) bool { panic("TODO") }
+func canRecover(decision grammar.RecoveryDecision) bool { panic("TODO") }
 
 // appendLexicalTail добавляет все строки начиная с from в безопасном лексическом режиме.
 func appendLexicalTail(lines []model.Line, source []physicalLine, from int) []model.Line {
