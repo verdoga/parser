@@ -44,7 +44,8 @@ func (e *InputError) Error() string { return e.err.Error() }
 // Unwrap возвращает исходную ошибку для errors.Is и errors.As.
 func (e *InputError) Unwrap() error { return e.err }
 
-// Discover определяет тип пути и находит обычные TXT-файлы в пределах глубины.
+// Discover определяет тип пути, находит TXT в пределах глубины и собирает JSON
+// только из каталогов, в которых найден хотя бы один TXT.
 func Discover(request Request) (Result, error) {
 	absolute, err := filepath.Abs(request.Path)
 	if err != nil {
@@ -128,6 +129,10 @@ func discoverDirectory(root string, depthLimit *int) (Result, error) {
 	slices.Sort(result.Files)
 	return result, nil
 }
+
+// discoverJSONFiles возвращает обычные JSON-файлы только из каталогов найденных TXT.
+// Результат не содержит дубликатов и отсортирован по абсолютному очищенному пути.
+func discoverJSONFiles(txtFiles []string) ([]string, []error) { panic("TODO") }
 
 // inputError создаёт типизированную ошибку исходного пути с форматированным сообщением.
 func inputError(format string, args ...any) error {

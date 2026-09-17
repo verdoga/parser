@@ -28,6 +28,8 @@ type sourceFailure struct {
 	fatal bool
 	// location содержит доступный диапазон либо nil без надёжной позиции.
 	location *model.Range
+	// fragment содержит исходный проблемный фрагмент для нормативного сообщения.
+	fragment string
 }
 
 // decodeSource проверяет UTF-8, BOM и переводы строк без нормализации байтов.

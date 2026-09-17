@@ -1,5 +1,34 @@
 package storage
 
+// syncFile задаёт минимальные операции временного или каталожного файла.
+type syncFile interface {
+	// Write записывает очередную часть содержимого.
+	Write(data []byte) (int, error)
+	// Name возвращает путь открытого файла.
+	Name() string
+	// Sync синхронизирует содержимое или запись каталога.
+	Sync() error
+	// Close закрывает файл.
+	Close() error
+}
+
+// fileOperations задаёт внешние операции, на сбоях которых проверяется rollback.
+type fileOperations interface {
+	// CreateTemp создаёт временный файл в целевом каталоге.
+	CreateTemp(directory, pattern string) (syncFile, error)
+	// Link атомарно устанавливает новый файл без замены существующего target.
+	Link(oldPath, newPath string) error
+	// Rename атомарно переименовывает объект в пределах файловой системы.
+	Rename(oldPath, newPath string) error
+	// Remove удаляет временный файл или завершённую резервную копию.
+	Remove(path string) error
+	// Open открывает каталог для синхронизации его записи.
+	Open(path string) (syncFile, error)
+}
+
+// fileSystemWithOperations создаёт файловый адаптер с тестовой границей операций.
+func fileSystemWithOperations(operations fileOperations) FileSystem { panic("TODO") }
+
 // WriteMode задаёт допустимое отношение к существующему целевому файлу.
 type WriteMode int
 

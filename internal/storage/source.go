@@ -21,7 +21,12 @@ type Reader interface {
 }
 
 // FileSystem реализует чтение и запись через стандартную файловую систему.
-type FileSystem struct{}
+// Нулевое значение готово к использованию; operations задаётся только тестами
+// пакета для детерминированной проверки сбоев атомарной замены.
+type FileSystem struct {
+	// operations подменяет только операции безопасной установки; nil использует os.
+	operations fileOperations
+}
 
 // ReadSource читает источник без нормализации содержимого.
 func (FileSystem) ReadSource(path string) (Source, error) { panic("TODO") }

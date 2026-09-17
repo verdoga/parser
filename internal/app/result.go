@@ -81,6 +81,8 @@ type RunResult struct {
 	Files []FileResult
 	// Summary содержит итоговые счетчики.
 	Summary Summary
+	// ScanErrors содержит ошибки отдельных участков обхода в порядке обнаружения.
+	ScanErrors []error
 	// ExitCode содержит вычисленный приложением код завершения.
 	ExitCode int
 }

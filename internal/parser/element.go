@@ -1,9 +1,12 @@
 package parser
 
-import "dslparser/internal/model"
+import (
+	"dslparser/internal/grammar"
+	"dslparser/internal/model"
+)
 
-// elementFromToken строит элемент и переводит внутренние байтовые смещения в Unicode-колонки.
-func elementFromToken(line physicalLine, token token, elementType model.ElementType, value *string) model.Element {
+// elementFromDecision строит элемент и переводит байтовые смещения grammar в Unicode-колонки.
+func elementFromDecision(line physicalLine, decision grammar.ElementDecision) model.Element {
 	panic("TODO")
 }
 
