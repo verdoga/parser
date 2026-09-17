@@ -3,6 +3,7 @@ package v1_2
 import (
 	"dslparser/internal/grammar"
 	"dslparser/internal/model"
+	"reflect"
 	"testing"
 )
 
@@ -26,101 +27,116 @@ var (
 	_ func(tagSpec) grammar.BlockDecision                                    = blockFor
 )
 
-// TestHeadings проверяет уровни, названия, ошибки формы, экранирование и корневого родителя.
-func TestHeadings(t *testing.T) {
+// TestHeadingScanner проверяет три уровня, обязательный разделитель и название.
+func TestHeadingScanner(t *testing.T) {
 	tests := []struct {
-		name, line, level, title string
-		valid                    bool
+		value string
+		want  heading
 	}{
-		{name: "level one", line: "# Unit", valid: true, level: "1", title: "Unit"},
-		{name: "level two", line: "## Topic", valid: true, level: "2", title: "Topic"},
-		{name: "level three", line: "### Step", valid: true, level: "3", title: "Step"},
-		{name: "missing space", line: "#Title"},
-		{name: "missing title", line: "## "},
-		{name: "extra level", line: "#### Title"},
+		{value: "# Unit", want: heading{level: span{0, 1}, title: span{2, 6}, value: "1", valid: true}},
+		{value: "##\tРаздел", want: heading{level: span{0, 2}, title: span{3, 15}, value: "2", valid: true}},
+		{value: "### Step 1", want: heading{level: span{0, 3}, title: span{4, 10}, value: "3", valid: true}},
+		{value: "#"}, {value: "# "}, {value: "#### Unsupported"}, {value: "#No separator"}, {value: "text"},
 	}
 	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			scanned := scanHeading(test.line)
-			if scanned.valid != test.valid || scanned.value != test.level {
-				t.Fatalf("scanHeading(%q) = %#v", test.line, scanned)
-			}
-			decision := classifyHeading(request(test.line, contextRoot, grammar.ContentDSL))
-			if test.valid {
-				if decision.LineType != model.LineHeading || len(decision.Elements) != 2 || len(decision.Parent.Kinds) != 0 {
-					t.Fatalf("heading decision = %#v", decision)
-				}
-				if decision.Elements[0].Value == nil || *decision.Elements[0].Value != test.level || decision.Elements[1].Value == nil || *decision.Elements[1].Value != test.title {
-					t.Fatalf("heading elements = %#v", decision.Elements)
-				}
-			} else if decision.LineType != model.LineInvalid || len(decision.Problems) == 0 {
-				t.Fatalf("invalid heading decision = %#v", decision)
-			}
-		})
-	}
-	if got := New().Classify(request(`\# literal`, contextRoot, grammar.ContentDSL)); got.LineType != model.LineContent {
-		t.Fatalf("escaped heading type = %q, want content", got.LineType)
-	}
-}
-
-// TestContexts проверяет классификацию blank, content, separator и границ во всех режимах.
-func TestContexts(t *testing.T) {
-	tests := []struct {
-		name    string
-		context grammar.Context
-		mode    grammar.ContentMode
-		line    string
-		want    model.LineType
-	}{
-		{name: "root blank", context: contextRoot, mode: grammar.ContentDSL, line: "", want: model.LineBlank},
-		{name: "root content", context: contextRoot, mode: grammar.ContentDSL, line: "ordinary", want: model.LineContent},
-		{name: "opaque tag literal", context: contextOpaque, mode: grammar.ContentOpaque, line: "@task id", want: model.LineContent},
-		{name: "example separator", context: contextExample, mode: grammar.ContentOpaque, line: "---", want: model.LineSeparator},
-		{name: "wordlist content", context: contextWordlist, mode: grammar.ContentOpaque, line: "one; two", want: model.LineContent},
-		{name: "table separator is content", context: contextTable, mode: grammar.ContentOpaque, line: "---", want: model.LineContent},
-		{name: "text blank", context: contextText, mode: grammar.ContentOpaque, line: "", want: model.LineBlank},
-		{name: "editor heading literal", context: contextEditor, mode: grammar.ContentEditor, line: "### note", want: model.LineContent},
-		{name: "instruction hint", context: contextInstruction, mode: grammar.ContentDSL, line: "@hint help", want: model.LineTag},
-		{name: "fragment content", context: contextFragment, mode: grammar.ContentDSL, line: "body", want: model.LineContent},
-		{name: "choice answer", context: contextChoice, mode: grammar.ContentDSL, line: "@answer yes", want: model.LineTag},
-		{name: "matching separator", context: contextMatching, mode: grammar.ContentDSL, line: "---", want: model.LineSeparator},
-		{name: "multifill blank content", context: contextMultifill, mode: grammar.ContentMultifill, line: "", want: model.LineContent},
-		{name: "variants branch", context: contextVariants, mode: grammar.ContentDSL, line: "@variant A", want: model.LineTag},
-		{name: "block close", context: contextOpaque, mode: grammar.ContentOpaque, line: "}", want: model.LineBlockEnd},
-		{name: "malformed close", context: contextRoot, mode: grammar.ContentDSL, line: "} tail", want: model.LineInvalid},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			decision := New().Classify(request(test.line, test.context, test.mode))
-			if decision.LineType != test.want {
-				t.Fatalf("Classify(%q) type = %q, want %q; decision=%#v", test.line, decision.LineType, test.want, decision)
+		t.Run(test.value, func(t *testing.T) {
+			if got := scanHeading(test.value); got != test.want {
+				t.Fatalf("scanHeading(%q) = %#v, want %#v", test.value, got, test.want)
 			}
 		})
 	}
 }
 
-// TestTransitionsParentsAndBlocks проверяет изменения областей и открытие блока.
-func TestTransitionsParentsAndBlocks(t *testing.T) {
+// TestClassifyEverySupportedTag проверяет хотя бы одну нормативную форму каждого из 34 тегов.
+func TestClassifyEverySupportedTag(t *testing.T) {
 	tests := []struct {
-		line  string
-		check func(grammar.Transition) bool
+		raw      string
+		lineType model.LineType
 	}{
-		{line: "@task id", check: func(got grammar.Transition) bool { return got.OpenTask }},
-		{line: "@endtask", check: func(got grammar.Transition) bool { return got.CloseTask }},
-		{line: "@step Part", check: func(got grammar.Transition) bool { return got.SetInnerStep }},
-		{line: "@variants {", check: func(got grammar.Transition) bool { return got.OpenVariants && got.CloseTask }},
-		{line: "@variant A", check: func(got grammar.Transition) bool { return got.SetVariant }},
+		{"@dsl-version 1.2", model.LineTag}, {"@document-id doc-1", model.LineTag},
+		{"@section Studentbook", model.LineTag}, {"@order 20", model.LineTag},
+		{"@resource-dir Audio, \"Shared, files\"", model.LineTag}, {"@header Vocabulary", model.LineTag},
+		{"@task 1a", model.LineTag}, {"@endtask", model.LineTag}, {"@step a", model.LineTag},
+		{"@speaking", model.LineTag}, {"@newpage", model.LineTag}, {"@editor note", model.LineTag},
+		{"@media audio track.mp3", model.LineTag}, {"@example Sample", model.LineTag},
+		{"@wordlist word; translation", model.LineTag}, {"@table {", model.LineBlockStart},
+		{"@script script.js", model.LineTag}, {"@text {", model.LineBlockStart}, {"@key answer", model.LineTag},
+		{"@instr Read", model.LineTag}, {"@note Note", model.LineTag}, {"@alt Alternative", model.LineTag},
+		{"@hint Hint", model.LineTag}, {"@fragment intro {", model.LineBlockStart},
+		{"@include intro", model.LineTag}, {"@answer yes", model.LineTag}, {"@question Why?", model.LineTag},
+		{"@multifill Fill _____{it}", model.LineTag}, {"@choice {", model.LineBlockStart},
+		{"@multichoice {", model.LineBlockStart}, {"@matching {", model.LineBlockStart},
+		{"@ordering {", model.LineBlockStart}, {"@variants {", model.LineBlockStart},
+		{"@variant Student-A", model.LineTag},
+	}
+	if len(tests) != supportedTagCount {
+		t.Fatalf("test table has %d entries, want %d", len(tests), supportedTagCount)
 	}
 	for _, test := range tests {
-		t.Run(test.line, func(t *testing.T) {
-			got := New().Classify(request(test.line, contextRoot, grammar.ContentDSL))
-			if !test.check(got.Transition) {
-				t.Fatalf("transition = %#v", got.Transition)
+		t.Run(test.raw, func(t *testing.T) {
+			decision := New().Classify(testRequest(test.raw, contextRoot, grammar.ContentDSL))
+			if decision.LineType != test.lineType || len(decision.Problems) != 0 {
+				t.Fatalf("Classify() = type %q, problems %#v; want %q without problems", decision.LineType, decision.Problems, test.lineType)
+			}
+			if len(decision.Elements) == 0 || decision.Elements[0].Type != model.ElementTag || decision.Elements[0].Value == nil {
+				t.Fatalf("tag element missing: %#v", decision.Elements)
 			}
 		})
 	}
-	block := New().Classify(request("@text {", contextRoot, grammar.ContentDSL)).Block
-	if block.Action != grammar.BlockOpen || block.Tag != "text" || block.Context != contextText || block.ContentMode != grammar.ContentOpaque {
-		t.Fatalf("text block = %#v", block)
+}
+
+// TestDeclarationDiagnostics проверяет восстанавливаемые ошибки формы объявлений P003–P008.
+func TestDeclarationDiagnostics(t *testing.T) {
+	tests := []struct {
+		name string
+		raw  string
+		kind grammar.ProblemKind
+	}{
+		{name: "unknown", raw: "@wat value", kind: grammar.ProblemUnknownTag},
+		{name: "separator", raw: "@task-id", kind: grammar.ProblemMissingSeparator},
+		{name: "unsupported block", raw: "@task id {", kind: grammar.ProblemUnsupportedForm},
+		{name: "missing argument", raw: "@task", kind: grammar.ProblemMissingArgument},
+		{name: "extra content", raw: "@endtask tail", kind: grammar.ProblemExtraContent},
+		{name: "malformed open", raw: "@text { tail", kind: grammar.ProblemMalformedBlockOpen},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			decision := New().Classify(testRequest(test.raw, contextRoot, grammar.ContentDSL))
+			if len(decision.Problems) == 0 || decision.Problems[0].Kind != test.kind {
+				t.Fatalf("problems = %#v, want first %q", decision.Problems, test.kind)
+			}
+		})
+	}
+}
+
+// TestParentForRules проверяет приоритеты логических родителей всех закрытых правил.
+func TestParentForRules(t *testing.T) {
+	tests := []struct {
+		rule parentRule
+		want []grammar.ParentKind
+	}{
+		{parentDocument, nil},
+		{parentContent, []grammar.ParentKind{grammar.ParentBlock, grammar.ParentInnerStep, grammar.ParentTask, grammar.ParentVariant, grammar.ParentStep}},
+		{parentTask, []grammar.ParentKind{grammar.ParentInnerStep, grammar.ParentTask}},
+		{parentStep, []grammar.ParentKind{grammar.ParentStep}},
+		{parentVariants, []grammar.ParentKind{grammar.ParentVariants}},
+		{parentVariantOrStep, []grammar.ParentKind{grammar.ParentVariant, grammar.ParentStep}},
+	}
+	for _, test := range tests {
+		spec := tagSpec{lineParent: test.rule, blockParent: test.rule}
+		for _, form := range []grammar.TagForm{grammar.TagFormLine, grammar.TagFormBlock} {
+			if got := parentFor(spec, form, contextRoot); !reflect.DeepEqual(got.Kinds, test.want) {
+				t.Errorf("parentFor(rule %d, form %d) = %v, want %v", test.rule, form, got.Kinds, test.want)
+			}
+		}
+	}
+}
+
+// TestBlockFor проверяет полное решение об открытии блока.
+func TestBlockFor(t *testing.T) {
+	spec := tagSpec{name: tagText, block: blockSpec{context: contextText, mode: grammar.ContentOpaque}}
+	want := grammar.BlockDecision{Action: grammar.BlockOpen, Tag: "text", Context: contextText, ContentMode: grammar.ContentOpaque}
+	if got := blockFor(spec); !reflect.DeepEqual(got, want) {
+		t.Fatalf("blockFor() = %#v, want %#v", got, want)
 	}
 }

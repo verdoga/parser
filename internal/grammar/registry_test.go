@@ -44,22 +44,22 @@ func TestParentsOwnsKinds(t *testing.T) {
 
 // TestRegistry проверяет регистрацию, порядок, поиск и владение результатами.
 func TestRegistry(t *testing.T) {
-	first := stubGrammar{version: "1.0"}
-	second := stubGrammar{version: "2.0"}
+	first := stubGrammar{version: "first"}
+	second := stubGrammar{version: "second"}
 	registry, err := NewRegistry(first, second)
 	if err != nil {
 		t.Fatalf("NewRegistry() error: %v", err)
 	}
 	versions := registry.Versions()
-	if !reflect.DeepEqual(versions, []string{"1.0", "2.0"}) {
+	if !reflect.DeepEqual(versions, []string{"first", "second"}) {
 		t.Fatalf("Versions() = %q", versions)
 	}
 	versions[0] = "changed"
-	if got := registry.Versions()[0]; got != "1.0" {
+	if got := registry.Versions()[0]; got != "first" {
 		t.Fatalf("Versions() exposed state: %q", got)
 	}
-	got, ok := registry.Lookup("2.0")
-	if !ok || got.Version() != "2.0" {
+	got, ok := registry.Lookup("second")
+	if !ok || got.Version() != "second" {
 		t.Fatalf("Lookup() = (%v, %t)", got, ok)
 	}
 	if got, ok := registry.Lookup("missing"); ok || got != nil {
@@ -91,7 +91,7 @@ func TestRegistryRejectsInvalidEntries(t *testing.T) {
 	}{
 		{name: "nil", grammars: []Grammar{nil}, reason: RegistrationNilGrammar},
 		{name: "empty", grammars: []Grammar{stubGrammar{}}, reason: RegistrationEmptyVersion},
-		{name: "duplicate", grammars: []Grammar{stubGrammar{"1.2"}, stubGrammar{"1.2"}}, reason: RegistrationDuplicateVersion, version: "1.2"},
+		{name: "duplicate", grammars: []Grammar{stubGrammar{"duplicate"}, stubGrammar{"duplicate"}}, reason: RegistrationDuplicateVersion, version: "duplicate"},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

@@ -1,8 +1,7 @@
 package v1_2
 
 import (
-	"dslparser/internal/grammar"
-	"dslparser/internal/model"
+	"reflect"
 	"testing"
 )
 
@@ -16,83 +15,103 @@ var (
 	_ func(string, []span) []span        = unescapedBraceRanges
 )
 
-// TestEscaping проверяет контекстные escape-последовательности и отсутствие повторного разбора.
-func TestEscaping(t *testing.T) {
+// TestUnescapePolicies проверяет снятие только тех экранов, которые значимы в выбранном контексте.
+func TestUnescapePolicies(t *testing.T) {
 	tests := []struct {
 		name   string
-		input  string
+		value  string
 		policy contentPolicy
 		want   string
 	}{
-		{name: "plain structural characters", input: `\@tag \#head \{x\} \\`, policy: contentPlain, want: `@tag #head {x} \`},
-		{name: "unknown escape remains", input: `a\qb`, policy: contentPlain, want: `a\qb`},
-		{name: "single pass", input: `\\\{`, policy: contentPlain, want: `\{`},
-		{name: "wordlist semicolon", input: `one\;two`, policy: contentWordlist, want: `one;two`},
-		{name: "example separator", input: `\---`, policy: contentExample, want: `---`},
-		{name: "table cell", input: `a\|b`, policy: contentTable, want: `a|b`},
-		{name: "html text", input: `\<b\>`, policy: contentHTMLText, want: `<b>`},
-		{name: "editor tag start", input: `\@task`, policy: contentEditor, want: `@task`},
-		{name: "resource path keeps slash", input: `dir\name`, policy: contentResourcePath, want: `dir\name`},
+		{name: "plain braces and slash", value: `a\{b\}c\\d\;e\|f\<g\>`, policy: contentPlain, want: `a{b}c\d\;e\|f\<g\>`},
+		{name: "wordlist semicolon", value: `one\;two\{x\}`, policy: contentWordlist, want: `one;two{x}`},
+		{name: "table pipe", value: `a\|b\{c\}`, policy: contentTable, want: `a|b{c}`},
+		{name: "html angles", value: `\<b\>x\</b\>`, policy: contentHTMLText, want: `<b>x</b>`},
+		{name: "media quote and slash", value: `a\"b\\c\{d`, policy: contentMediaSource, want: `a"b\c\{d`},
+		{name: "resource path is literal", value: `C:\dir\file`, policy: contentResourcePath, want: `C:\dir\file`},
+		{name: "editor is literal", value: `\{x\}\|`, policy: contentEditor, want: `\{x\}\|`},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			if got := unescape(test.input, test.policy); got != test.want {
-				t.Fatalf("unescape(%q) = %q, want %q", test.input, got, test.want)
+			if got := unescape(test.value, test.policy); got != test.want {
+				t.Fatalf("unescape(%q, %d) = %q, want %q", test.value, test.policy, got, test.want)
 			}
 		})
 	}
-	if got := unescapeText(`\@x\{y\}`); got != `@x{y}` {
+}
+
+// TestSpecializedUnescape проверяет специализированные функции текста и media SOURCE.
+func TestSpecializedUnescape(t *testing.T) {
+	if got := unescapeText(`\\ \{x\} \; \q`); got != `\ {x} \; \q` {
 		t.Fatalf("unescapeText() = %q", got)
 	}
-	if got := unescapeMediaSource(`a\"b\\c\q`); got != `a"b\c\q` {
+	if got := unescapeMediaSource(`say \"yes\" at C:\\tmp\{x`); got != `say "yes" at C:\tmp\{x` {
 		t.Fatalf("unescapeMediaSource() = %q", got)
 	}
 }
 
-// TestUnescapedBraceRanges проверяет экранированные и защищённые байтовые диапазоны скобок.
-func TestUnescapedBraceRanges(t *testing.T) {
-	got := unescapedBraceRanges(`я{a\}b}_____{x}z{`, []span{{start: 8, end: 16}})
-	want := []span{{start: 2, end: 3}, {start: 7, end: 8}, {start: 17, end: 18}}
-	if len(got) != len(want) {
-		t.Fatalf("ranges = %#v, want %#v", got, want)
-	}
-	for index := range want {
-		requireSpan(t, got[index], want[index].start, want[index].end)
-	}
-}
-
-// TestMultifillPlaceholders проверяет только минимально защищённую специальную форму.
-func TestMultifillPlaceholders(t *testing.T) {
+// TestPlaceholderRanges проверяет минимальное распознавание защищённых multifill-диапазонов.
+func TestPlaceholderRanges(t *testing.T) {
 	tests := []struct {
-		name, input string
-		want        []span
+		name  string
+		value string
+		want  []span
 	}{
-		{name: "one", input: "x_____{yes}y", want: []span{{start: 1, end: 11}}},
-		{name: "two", input: "_____{a} _____{б}", want: []span{{start: 0, end: 8}, {start: 9, end: 18}}},
-		{name: "ordinary placeholder", input: "_____"},
-		{name: "too few underscores", input: "____{x}"},
-		{name: "escaped opening brace", input: `_____\{x}`},
-		{name: "missing close", input: "_____{x"},
-		{name: "empty answer", input: "_____{}"},
+		{name: "none", value: "plain {text}"},
+		{name: "one", value: "_____{answer}", want: []span{{0, 13}}},
+		{name: "multiple and unicode", value: "я _____{да} + _____{no}", want: []span{{3, 15}, {18, 27}}},
+		{name: "requires five underscores", value: "____{no}"},
+		{name: "requires closing brace", value: "_____{open"},
+		{name: "empty answer", value: "_____{}", want: []span{{0, 7}}},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			got := placeholderRanges(test.input)
-			if len(got) != len(test.want) {
-				t.Fatalf("placeholderRanges(%q) = %#v, want %#v", test.input, got, test.want)
-			}
-			for index := range test.want {
-				requireSpan(t, got[index], test.want[index].start, test.want[index].end)
+			if got := placeholderRanges(test.value); !reflect.DeepEqual(got, test.want) {
+				t.Fatalf("placeholderRanges(%q) = %#v, want %#v", test.value, got, test.want)
 			}
 		})
 	}
-	decision := New().Classify(request("text _____{answer}", contextMultifill, grammar.ContentMultifill))
-	for _, element := range decision.Elements {
-		if element.Type == model.ElementPlaceholder {
-			t.Fatal("multifill classification created forbidden placeholder element")
-		}
-	}
-	if answer := New().Classify(request("@answer wrong", contextMultifill, grammar.ContentMultifill)); len(answer.Problems) == 0 {
-		t.Fatal("@answer in multifill has no problem")
+}
+
+// TestUnescapedBraceRanges проверяет байтовые диапазоны неэкранированных и незащищённых скобок.
+func TestUnescapedBraceRanges(t *testing.T) {
+	value := `я {a} \{b\} _____{ok} }`
+	protected := placeholderRanges(value)
+	want := []span{{3, 4}, {5, 6}, {25, 26}}
+	if got := unescapedBraceRanges(value, protected); !reflect.DeepEqual(got, want) {
+		t.Fatalf("unescapedBraceRanges() = %#v, want %#v", got, want)
 	}
 }
+
+// TestScanResourcePaths проверяет кавычки, запятые, пробелы и ошибочные остатки списка путей.
+func TestScanResourcePaths(t *testing.T) {
+	tests := []struct {
+		name          string
+		value         string
+		wantValues    []string
+		wantRemainder *span
+	}{
+		{name: "mixed", value: ` Audio, "../Shared resources", "../Video, additional" `, wantValues: []string{"Audio", "../Shared resources", "../Video, additional"}},
+		{name: "windows path literal", value: `C:\audio\unit 1`, wantValues: []string{`C:\audio\unit 1`}},
+		{name: "empty", value: "", wantRemainder: spanPointer(span{0, 0})},
+		{name: "empty item", value: "one,,two", wantValues: []string{"one"}, wantRemainder: spanPointer(span{4, 5})},
+		{name: "trailing comma", value: "one,", wantValues: []string{"one"}, wantRemainder: spanPointer(span{3, 4})},
+		{name: "unterminated quote", value: `"one`, wantRemainder: spanPointer(span{0, 4})},
+		{name: "junk after quote", value: `"one"junk`, wantValues: []string{"one"}, wantRemainder: spanPointer(span{5, 9})},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			got := scanResourcePaths(test.value)
+			values := make([]string, len(got.paths))
+			for i := range got.paths {
+				values[i] = got.paths[i].value
+			}
+			if !reflect.DeepEqual(values, test.wantValues) || !reflect.DeepEqual(got.remainder, test.wantRemainder) {
+				t.Fatalf("scanResourcePaths(%q) = values %q, remainder %#v; want %q, %#v", test.value, values, got.remainder, test.wantValues, test.wantRemainder)
+			}
+		})
+	}
+}
+
+// spanPointer создаёт указатель на отдельную копию диапазона.
+func spanPointer(value span) *span { return &value }
