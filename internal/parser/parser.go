@@ -1,9 +1,12 @@
 package parser
 
-import "dslparser/internal/model"
+import (
+	"dslparser/internal/grammar"
+	"dslparser/internal/model"
+)
 
 // parseDecoded последовательно строит строки, состояние, метаданные и диагностики выбранной версии.
-func parseDecoded(input Input, source physicalSource, selected Grammar, builder *diagnosticBuilder) Result {
+func parseDecoded(input Input, source physicalSource, selected grammar.Grammar, builder *diagnosticBuilder) Result {
 	panic("TODO")
 }
 

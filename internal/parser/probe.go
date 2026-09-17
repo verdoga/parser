@@ -1,6 +1,9 @@
 package parser
 
-import "dslparser/internal/model"
+import (
+	"dslparser/internal/grammar"
+	"dslparser/internal/model"
+)
 
 // versionProbe содержит результат синтаксического чтения первой строки.
 type versionProbe struct {
@@ -16,4 +19,4 @@ type versionProbe struct {
 func probeVersion(line physicalLine) versionProbe { panic("TODO") }
 
 // probeDocumentID возвращает единственный однозначно выделенный ID либо nil.
-func probeDocumentID(lines []physicalLine, selected Grammar) *string { panic("TODO") }
+func probeDocumentID(lines []physicalLine, selected grammar.Grammar) *string { panic("TODO") }
