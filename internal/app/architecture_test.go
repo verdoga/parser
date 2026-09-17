@@ -15,10 +15,12 @@ var (
 )
 
 // architectureNow представляет тестовую границу времени для будущих поведенческих тестов.
-func architectureNow() time.Time { panic("TODO") }
+func architectureNow() time.Time { return time.Unix(0, 0).UTC() }
 
 // architectureID представляет тестовый генератор processing ID.
-func architectureID() string { panic("TODO") }
+func architectureID() string { return "architecture-id" }
 
 // architectureProcess представляет тестовую границу обработки файла.
-func architectureProcess(request processRequest) FileResult { panic("TODO") }
+func architectureProcess(request processRequest) FileResult {
+	return FileResult{Path: request.Path, Status: FileSuccess, Action: ActionCreated}
+}

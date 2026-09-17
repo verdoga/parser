@@ -46,7 +46,7 @@ func TestProblemKindValues(t *testing.T) {
 type architectureGrammar struct{}
 
 // Version соответствует контракту Grammar.
-func (architectureGrammar) Version() string { panic("TODO") }
+func (architectureGrammar) Version() string { return "architecture" }
 
 // Classify соответствует контракту Grammar.
-func (architectureGrammar) Classify(request GrammarRequest) GrammarDecision { panic("TODO") }
+func (architectureGrammar) Classify(GrammarRequest) GrammarDecision { return GrammarDecision{} }
