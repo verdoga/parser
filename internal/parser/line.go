@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"dslparser/internal/diagnostics"
 	"dslparser/internal/grammar"
 	"dslparser/internal/model"
 )
@@ -14,7 +15,7 @@ type lineResult struct {
 }
 
 // parseLine выбирает разбор строки по контексту и применяет только однозначное решение.
-func parseLine(line physicalLine, state *parseState, selected grammar.Grammar, diagnostics *diagnosticBuilder) lineResult {
+func parseLine(line physicalLine, state *parseState, selected grammar.Grammar, builder *diagnostics.Builder) (lineResult, error) {
 	panic("TODO")
 }
 
@@ -22,16 +23,16 @@ func parseLine(line physicalLine, state *parseState, selected grammar.Grammar, d
 func parseHeading(line physicalLine, state parseState) lineResult { panic("TODO") }
 
 // parseDeclaration разбирает форму и параметры объявления через выбранную grammar.
-func parseDeclaration(line physicalLine, state *parseState, selected grammar.Grammar, diagnostics *diagnosticBuilder) lineResult {
+func parseDeclaration(line physicalLine, state *parseState, selected grammar.Grammar, builder *diagnostics.Builder) (lineResult, error) {
 	panic("TODO")
 }
 
 // parseBlockEnd сопоставляет отдельную закрывающую скобку только с вершиной стека.
-func parseBlockEnd(line physicalLine, state *parseState, diagnostics *diagnosticBuilder) lineResult {
+func parseBlockEnd(line physicalLine, state *parseState, builder *diagnostics.Builder) (lineResult, error) {
 	panic("TODO")
 }
 
 // parseContent строит содержимое в соответствии с активным грамматическим контекстом.
-func parseContent(line physicalLine, state parseState, selected grammar.Grammar, diagnostics *diagnosticBuilder) lineResult {
+func parseContent(line physicalLine, state parseState, selected grammar.Grammar, builder *diagnostics.Builder) (lineResult, error) {
 	panic("TODO")
 }

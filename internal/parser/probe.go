@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"dslparser/internal/diagnostics"
 	"dslparser/internal/grammar"
 	"dslparser/internal/model"
 )
@@ -12,7 +13,7 @@ type versionProbe struct {
 	// element содержит выделенный элемент версии либо nil.
 	element *model.Element
 	// problem содержит P013 либо nil для корректной формы.
-	problem *diagnosticDraft
+	problem *diagnostics.Request
 }
 
 // probeVersion разбирает только нормативную форму версии в первой физической строке.

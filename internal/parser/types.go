@@ -40,7 +40,12 @@ type Result struct {
 }
 
 // ProbeSource выполняет лёгкое извлечение версии и document-id без полного разбора.
-func ProbeSource(input Input, registry grammar.Registry) (Probe, []model.Diagnostic) { panic("TODO") }
+// Синтаксическая проблема даёт отсутствующее поле Probe, но не ошибку: диагностики
+// создаются только последующим полным Parse после решения не пропускать источник.
+func ProbeSource(data []byte, registry grammar.Registry) (Probe, error) { panic("TODO") }
 
 // Parse выполняет декодирование, выбор грамматики и полный построчный структурный разбор.
-func Parse(input Input, registry grammar.Registry) Result { panic("TODO") }
+// Parse создаёт единственный diagnostics.Builder с Input.ProcessingID.
+func Parse(input Input, registry grammar.Registry) (Result, error) {
+	panic("TODO")
+}

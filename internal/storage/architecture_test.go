@@ -4,4 +4,5 @@ package storage
 var (
 	_ Reader = FileSystem{}
 	_ Writer = FileSystem{}
+	_        = fileSystemWithOperations
 )

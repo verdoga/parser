@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"dslparser/internal/diagnostics"
 	"dslparser/internal/grammar"
 	"dslparser/internal/model"
 )
@@ -17,6 +18,6 @@ func appendLexicalTail(lines []model.Line, source []physicalLine, from int) []mo
 func lexicalTailLine(line physicalLine) model.Line { panic("TODO") }
 
 // unclosedBlockDiagnostic создаёт фатальную P011 со связанным местом открытия блока.
-func unclosedBlockDiagnostic(frame blockFrame, eofLine int, builder *diagnosticBuilder) model.Diagnostic {
+func unclosedBlockDiagnostic(frame blockFrame, eofLine int, builder *diagnostics.Builder) (model.Diagnostic, error) {
 	panic("TODO")
 }

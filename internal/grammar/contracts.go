@@ -194,4 +194,10 @@ type Problem struct {
 	ByteEnd int
 	// Element содержит индекс связанного ElementDecision либо -1 без связи.
 	Element int
+	// Tag содержит каноническое имя связанного тега либо пустую строку.
+	Tag string
+	// Fragment содержит исходный проблемный фрагмент либо пустую строку.
+	Fragment string
+	// Required содержит имя обязательного параметра, формы или разделителя либо пустую строку.
+	Required string
 }
