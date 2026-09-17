@@ -19,9 +19,9 @@ var (
 type architectureGrammar struct{}
 
 // Version соответствует контракту grammar.Grammar.
-func (architectureGrammar) Version() string { panic("TODO") }
+func (architectureGrammar) Version() string { return "architecture" }
 
 // Classify соответствует контракту grammar.Grammar.
-func (architectureGrammar) Classify(request grammar.GrammarRequest) grammar.GrammarDecision {
-	panic("TODO")
+func (architectureGrammar) Classify(grammar.GrammarRequest) grammar.GrammarDecision {
+	return grammar.GrammarDecision{}
 }
