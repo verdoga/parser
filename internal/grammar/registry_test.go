@@ -67,6 +67,20 @@ func TestRegistry(t *testing.T) {
 	}
 }
 
+// TestRegistryEmpty проверяет допустимость пустого неизменяемого реестра.
+func TestRegistryEmpty(t *testing.T) {
+	registry, err := NewRegistry()
+	if err != nil {
+		t.Fatalf("NewRegistry() error: %v", err)
+	}
+	if versions := registry.Versions(); versions == nil || len(versions) != 0 {
+		t.Fatalf("Versions() = %#v, want non-nil empty slice", versions)
+	}
+	if got, ok := registry.Lookup(""); ok || got != nil {
+		t.Fatalf("Lookup(empty) = (%v, %t), want (nil, false)", got, ok)
+	}
+}
+
 // TestRegistryRejectsInvalidEntries проверяет типизированные причины регистрации.
 func TestRegistryRejectsInvalidEntries(t *testing.T) {
 	tests := []struct {
@@ -82,6 +96,9 @@ func TestRegistryRejectsInvalidEntries(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			_, err := NewRegistry(test.grammars...)
+			if err == nil {
+				t.Fatal("NewRegistry() error = nil")
+			}
 			var registrationError *RegistrationError
 			if !errors.As(err, &registrationError) {
 				t.Fatalf("error = %T, want *RegistrationError", err)

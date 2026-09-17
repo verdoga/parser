@@ -2,7 +2,7 @@ package diagnostics
 
 import "dslparser/internal/model"
 
-// registryCase описывает будущую табличную проверку записи единого реестра.
+// registryCase описывает табличную проверку записи единого реестра.
 type registryCase struct {
 	// name содержит имя подтеста.
 	name string
@@ -14,7 +14,7 @@ type registryCase struct {
 	fatalPolicy fatalPolicy
 }
 
-// builderCase описывает будущую проверку создания, порядка или дедупликации.
+// builderCase описывает проверку создания, порядка или дедупликации.
 type builderCase struct {
 	// name содержит имя подтеста.
 	name string
@@ -24,7 +24,7 @@ type builderCase struct {
 	created bool
 }
 
-// messageCase описывает будущую проверку нормативного сообщения с деталями.
+// messageCase описывает проверку нормативного сообщения с деталями.
 type messageCase struct {
 	// name содержит имя подтеста.
 	name string
